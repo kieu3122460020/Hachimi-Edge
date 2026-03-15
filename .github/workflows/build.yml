@@ -1,0 +1,33 @@
+name: Build Zygisk Module
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install NDK
+        run: |
+          wget -q https://dl.google.com/android/repository/android-ndk-r25c-linux.zip -O ndk.zip
+          unzip -q ndk.zip
+          echo "ANDROID_NDK_ROOT=${{ github.workspace }}/android-ndk-r25c" >> $GITHUB_ENV
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - name: Build
+        run: |
+          ./tools/android/build_zygisk.sh
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hachimi-zygisk
+          path: build/zygisk-*.zip
